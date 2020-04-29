@@ -25,6 +25,30 @@ public:
     T Get(size_t pos);                              // Get element
 };
 
+
+template <typename FunctorObject>
+class HashTable {
+private:
+    size_t capacity;                                // Hash table capacity
+    List<int> *table;                               // Hash table itself
+    FunctorObject hash;
+public:
+    HashTable();                                    // Default constructor
+    HashTable(size_t n);                            // Constructor that ensures n different hash values could be stored
+    ~HashTable() noexcept ;                         // Destructor
+    HashTable(const HashTable& other);              // Copy constructor
+    HashTable(HashTable&& other);                   // Move constructor
+    HashTable& operator=(const HashTable& other);   // Copy assignment
+    HashTable& operator=(HashTable&& other);        // Move assignment
+
+    void Insert(const char* key, int value);        // Insertion method
+    int Get(const char *key);                       // Get value by key
+    void Delete(const char *key);                   // Delete value by key
+
+    void DumpListLength(const char *filename);      // Dump lengths of all the lists in the Hash Table
+
+};
+
 int main() {
     std::cout << "Hello, World!" << std::endl;
     return 0;
