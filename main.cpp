@@ -17,7 +17,9 @@ public:
 //    List();                                       // Default constructor
     explicit List(size_t capacity = 32);            // Constructor according to desired capacity
     List(const List &lst);                          // Copy constructor
+    List(List &&lst) noexcept;                      // Move constructor
     ~List() noexcept;                               // Destructor
+    List &operator=(const List &lst);               // Copy assignment
 
     size_t Head();                                  // Get head
     size_t Size();                                  // Get size
@@ -42,6 +44,19 @@ List<T>::List(size_t capacity) : capacity(capacity), size(0), head(0), tail(0), 
     for (int i = 0; i < capacity - 1; i++) {
         nexts[i] = i + 1;                           // Set addresses of next free positions
     }
+}
+
+template<typename T>
+List<T>::List(List &&lst) noexcept: capacity(lst.capacity), size(lst.size), head(lst.head), tail(lst.tail),
+                                    freeHead(lst.freeHead) {
+    values = lst.values;
+    nexts = lst.nexts;
+
+    lst.capacity = 0;
+    lst.size = 0;
+    lst.head = 0;
+    lst.tail = 0;
+    lst.freeHead = 0;
 }
 
 template<typename T>
@@ -130,10 +145,12 @@ template<typename FunctorObject, int BucketSize>
 class HashTable {
 private:
     struct KeyValuePair {
-        char *key;
+        const char *key;
         int value;
 
-        KeyValuePair(char* key, int value);
+        KeyValuePair() = default;
+
+        KeyValuePair(const char *key, int value);
     };
 
     size_t capacity;                                // Hash table capacity
@@ -143,7 +160,8 @@ private:
     void releaseMemory();                           // Function to release memory
 public:
 //    HashTable();                                    // Default constructor
-    explicit HashTable(size_t n = 997);                      // Constructor that ensures n different hash values could be stored
+    explicit HashTable(
+            size_t n = 997);                      // Constructor that ensures n different hash values could be stored
     ~HashTable() noexcept;                          // Destructor
     HashTable(const HashTable &other);              // Copy constructor
     HashTable(HashTable &&other) noexcept;                   // Move constructor
@@ -152,13 +170,15 @@ public:
 
     void Insert(const char *key, int value);        // Insertion method
     int Get(const char *key);                       // Get values by key
-    void Delete(const char *key);                   // Delete values by key
+//    void Delete(const char *key);                   // Delete values by key
 
     void DumpListLength(const char *filename);      // Dump lengths of all the lists in the Hash Table
 };
 
 template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>::KeyValuePair::KeyValuePair(char *key, int value): key(key), value(value) {}
+HashTable<FunctorObject, BucketSize>::KeyValuePair::KeyValuePair(const char *key, int value): value(value) {
+    this->key = key;
+}
 
 template<typename FunctorObject, int BucketSize>
 void HashTable<FunctorObject, BucketSize>::releaseMemory() {
@@ -227,8 +247,8 @@ HashTable<FunctorObject, BucketSize> &HashTable<FunctorObject, BucketSize>::oper
 
 template<typename FunctorObject, int BucketSize>
 void HashTable<FunctorObject, BucketSize>::DumpListLength(const char *filename) {
-    FILE* dump = fopen(filename, "w");
-    for(int i = 0; i < capacity; i++) {
+    FILE *dump = fopen(filename, "w");
+    for (int i = 0; i < capacity; i++) {
         fprintf(dump, "%d\n", table[i].Size());
     }
     fclose(dump);
@@ -244,8 +264,8 @@ void HashTable<FunctorObject, BucketSize>::Insert(const char *key, int value) {
 
     int cur = bucket.Head();
 
-    for(int i = 0; i < bucket.Size(); i++) {
-        if(!strcmp(bucketData[cur].key, key))
+    for (int i = 0; i < bucket.Size(); i++) {
+        if (!strcmp(bucketData[cur].key, key))
             return;
     }
     bucket.PushBack(KeyValuePair(key, value));
@@ -260,8 +280,8 @@ int HashTable<FunctorObject, BucketSize>::Get(const char *key) {
     size_t *nexts = bucket.GetNextsArray();
     KeyValuePair *elems = bucket.GetValuesArray();
 
-    for(int i = 0; i < bucket.Size(); i++) {
-        if(!strcmp(elems[cur].key, key))
+    for (int i = 0; i < bucket.Size(); i++) {
+        if (!strcmp(elems[cur].key, key))
             return elems[cur].value;
         cur = nexts[cur];
     }
@@ -269,19 +289,17 @@ int HashTable<FunctorObject, BucketSize>::Get(const char *key) {
     return -1;
 }
 
+struct HashFunctor {
+    unsigned int operator()(const char *key) {
+        return 1;
+    }
+};
+
 
 int main() {
-    List<int> lst(64);
-    lst.PushBack(0);
-    for (int i = 1; i < 64; i++) {
-        lst.Insert(i - 1, i * 2);
-        for (int j = 0; j < 64; j++) {
-            std::cout << lst.GetNextsArray()[j] << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    for (int i = 0; i < 64; i++) {
-        std::cout << lst.Get(i) << std::endl;
-    }
+    HashTable<HashFunctor, 64> ht(997);
+    ht.Insert("abc", 1);
+    ht.Insert("bcd", 2);
+    ht.Insert("friends", 4417);
+    std::cout << ht.Get("abc") << ht.Get("bcd") << ht.Get("friends");
 }
