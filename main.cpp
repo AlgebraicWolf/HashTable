@@ -199,7 +199,16 @@ HashTable<FunctorObject, BucketSize>& HashTable<FunctorObject, BucketSize>::oper
     return *this;
 }
 
+template<typename FunctorObject, int BucketSize>
+HashTable<FunctorObject, BucketSize>& HashTable<FunctorObject, BucketSize>::operator=(HashTable &&other) {
+    releaseMemory();
 
+    table = other.table;
+    capacity = other.capacity;
+
+    other.capacity = 0;
+    other.table = nullptr;
+}
 
 int main() {
     List<int> lst(64);
