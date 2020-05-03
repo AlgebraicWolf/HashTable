@@ -19,6 +19,7 @@ public:
     List(const List &lst);                          // Copy constructor
     ~List() noexcept;                               // Destructor
 
+    size_t Head();                                  // Get head
     size_t Size();                                  // Get size
 //    void Reserve(size_t n);                         // Allocate space in order to ensure n elements could be placed
     void Insert(size_t pos, const T &value);        // Insert values after element at pos
@@ -27,6 +28,11 @@ public:
     T *GetValuesArray();                                 // Array of values
     size_t *GetNextsArray();                             // Array of next positions
 };
+
+template<typename T>
+size_t List<T>::Head() {
+    return head;
+}
 
 template<typename T>
 List<T>::List(size_t capacity) : capacity(capacity), size(0), head(0), tail(0), freeHead(0) {
@@ -125,8 +131,9 @@ class HashTable {
 private:
     struct KeyValuePair {
         char *key;
-        int keyLength;
         int value;
+
+        KeyValuePair(char* key, int value);
     };
 
     size_t capacity;                                // Hash table capacity
@@ -149,6 +156,9 @@ public:
 
     void DumpListLength(const char *filename);      // Dump lengths of all the lists in the Hash Table
 };
+
+template<typename FunctorObject, int BucketSize>
+HashTable<FunctorObject, BucketSize>::KeyValuePair::KeyValuePair(char *key, int value): key(key), value(value) {}
 
 template<typename FunctorObject, int BucketSize>
 void HashTable<FunctorObject, BucketSize>::releaseMemory() {
@@ -213,6 +223,32 @@ HashTable<FunctorObject, BucketSize> &HashTable<FunctorObject, BucketSize>::oper
     other.table = nullptr;
 
     return *this;
+}
+
+template<typename FunctorObject, int BucketSize>
+void HashTable<FunctorObject, BucketSize>::DumpListLength(const char *filename) {
+    FILE* dump = fopen(filename, "w");
+    for(int i = 0; i < capacity; i++) {
+        fprintf(dump, "%d\n", table[i].Size());
+    }
+    fclose(dump);
+}
+
+template<typename FunctorObject, int BucketSize>
+void HashTable<FunctorObject, BucketSize>::Insert(const char *key, int value) {
+    unsigned int pos = hash(key) % capacity;
+    List<KeyValuePair> bucket = table[pos];
+
+    KeyValuePair *bucketData = bucket.GetValuesArray();
+    size_t *nexts = bucket.GetNextsArray();
+
+    int cur = bucket.Head();
+
+    for(int i = 0; i < bucket.Size(); i++) {
+        if(!strcmp(bucketData[cur].key, key))
+            return;
+    }
+    bucket.PushBack(KeyValuePair(key, value));
 }
 
 int main() {
