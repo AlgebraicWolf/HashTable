@@ -11,8 +11,8 @@ private:
     size_t tail;
     size_t freeHead;
 
-    T *value;
-    size_t *next;
+    T *values;
+    size_t *nexts;
 public:
 //    List();                                       // Default constructor
     List(size_t capacity = 32);                     // Constructor according to desired capacity
@@ -21,55 +21,55 @@ public:
 
     size_t Size();                                  // Get size
 //    void Reserve(size_t n);                         // Allocate space in order to ensure n elements could be placed
-    void Insert(size_t pos, const T &value);        // Insert value after element at pos
-    void PushBack(const T &value);                  // Insert value at the end of the list
+    void Insert(size_t pos, const T &value);        // Insert values after element at pos
+    void PushBack(const T &value);                  // Insert values at the end of the list
     T Get(size_t pos);                              // Get element
-    T *ValueData();                                 // Array of values
-    size_t *NextData();                             // Array of next positions
+    T *GetValuesArray();                                 // Array of values
+    size_t *GetNextsArray();                             // Array of next positions
 };
 
 template<typename T>
 List<T>::List(size_t capacity) : capacity(capacity), size(0), head(0), tail(0), freeHead(0) {
-    value = new T[capacity];
-    next = new size_t[capacity];
+    values = new T[capacity];
+    nexts = new size_t[capacity];
 
     for (int i = 0; i < capacity - 1; i++) {
-        next[i] = i + 1;                           // Set addresses of next free positions
+        nexts[i] = i + 1;                           // Set addresses of next free positions
     }
 }
 
 template<typename T>
 List<T>::~List() noexcept {
-    delete[] value;
-    delete[] next;
+    delete[] values;
+    delete[] nexts;
 }
 
 template<typename T>
 void List<T>::PushBack(const T &val) {
     if (size < capacity) {
-        value[freeHead] = val;
+        values[freeHead] = val;
 
         if (!size) {
             head = freeHead;
             tail = freeHead;
         } else {
-            next[tail] = freeHead;
+            nexts[tail] = freeHead;
             tail = freeHead;
         }
 
-        freeHead = next[freeHead];
+        freeHead = nexts[freeHead];
         size++;
     }
 }
 
 template<typename T>
-T *List<T>::ValueData() {
-    return value;
+T *List<T>::GetValuesArray() {
+    return values;
 }
 
 template<typename T>
-size_t *List<T>::NextData() {
-    return next;
+size_t *List<T>::GetNextsArray() {
+    return nexts;
 }
 
 template<typename T>
@@ -82,9 +82,9 @@ T List<T>::Get(size_t pos) {
     if(pos < size) {
         int cur = head;
         for(int i = 0; i < pos; i++)
-            cur = next[cur];
+            cur = nexts[cur];
 
-        return value[cur];
+        return values[cur];
     }
     return static_cast<T>(0);
 }
@@ -94,15 +94,15 @@ void List<T>::Insert(size_t pos, const T& val) {
     if(size < capacity) {
         int cur = head;
         for(int i = 0; i < pos; i++) {
-            cur = next[cur];
+            cur = nexts[cur];
         }
 
         int newPos = freeHead;
-        freeHead = next[freeHead];
+        freeHead = nexts[freeHead];
 
-        value[newPos] = val;
-        next[newPos] = next[cur];
-        next[cur] = newPos;
+        values[newPos] = val;
+        nexts[newPos] = nexts[cur];
+        nexts[cur] = newPos;
         size++;
         if(tail == cur)
             tail = newPos;
@@ -111,11 +111,11 @@ void List<T>::Insert(size_t pos, const T& val) {
 
 template <typename T>
 List<T>::List(const List<T> &lst): capacity(lst.capacity), size(lst.size), head(lst.head), tail(lst.tail), freeHead(lst.freeHead) {
-    value = new T[capacity];
-    next = new size_t[capacity];
+    values = new T[capacity];
+    nexts = new size_t[capacity];
 
-    memcpy(value, lst.value, sizeof(T) * capacity);
-    memcpy(next, lst.next, sizeof(size_t) * capacity);
+    memcpy(values, lst.values, sizeof(T) * capacity);
+    memcpy(nexts, lst.nexts, sizeof(size_t) * capacity);
 }
 
 
@@ -136,8 +136,8 @@ public:
     HashTable &operator=(HashTable &&other);        // Move assignment
 
     void Insert(const char *key, int value);        // Insertion method
-    int Get(const char *key);                       // Get value by key
-    void Delete(const char *key);                   // Delete value by key
+    int Get(const char *key);                       // Get values by key
+    void Delete(const char *key);                   // Delete values by key
 
     void DumpListLength(const char *filename);      // Dump lengths of all the lists in the Hash Table
 
@@ -149,7 +149,7 @@ int main() {
     for(int i = 1; i < 64; i ++) {
         lst.Insert(i - 1, i * 2);
         for(int j = 0; j < 64; j++) {
-            std::cout << lst.NextData()[j] << " ";
+            std::cout << lst.GetNextsArray()[j] << " ";
         }
         std::cout << std::endl;
     }
