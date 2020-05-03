@@ -20,6 +20,7 @@ public:
     List(List &&lst) noexcept;                      // Move constructor
     ~List() noexcept;                               // Destructor
     List &operator=(const List &lst);               // Copy assignment
+    List &operator=(List &&lst) noexcept;           // Move assignment
 
     size_t Head();                                  // Get head
     size_t Size();                                  // Get size
@@ -57,6 +58,29 @@ List<T>::List(List &&lst) noexcept: capacity(lst.capacity), size(lst.size), head
     lst.head = 0;
     lst.tail = 0;
     lst.freeHead = 0;
+
+    lst.nexts = nullptr;
+    lst.values = nullptr;
+}
+
+template<typename T>
+List<T> &List<T>::operator=(const List &lst) {
+    delete[] values;
+    delete[] nexts;
+
+    capacity = lst.capacity;
+    size = lst.size;
+    head = lst.head;
+    tail = lst.tail;
+    freeHead = lst.freeHead;
+
+    values = new T[capacity];
+    nexts = new size_t[capacity];
+
+    memcpy(values, lst.values, sizeof(T) * capacity);
+    memcpy(nexts, lst.nexts, sizeof(size_t) * capacity);
+
+    return *this;
 }
 
 template<typename T>
