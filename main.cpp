@@ -13,8 +13,8 @@ private:
     T* value;
     size_t* next;
 public:
-    List();                                         // Default constructor
-    List(size_t capacity);                          // Constructor according to desired capacity
+//    List();                                         // Default constructor
+    List(size_t capacity = 32);                          // Constructor according to desired capacity
     List(const List& lst);                          // Copy constructor
     ~List() noexcept;                               // Destructor
 
@@ -23,7 +23,20 @@ public:
     void Insert(size_t pos, const T& value);        // Insert value after element at pos
     void PushBack(const T& value);                  // Insert value at the end of the list
     T Get(size_t pos);                              // Get element
+    T* ValueData();                                 // Array of values
+    size_t *NextData();                             // Array of next positions
 };
+
+template<typename T>
+List<T>::List(size_t capacity) : capacity(capacity), size(0), head(0), tail(0), freeHead(0) {
+    value = new T[capacity];
+    next = new T[capacity];
+
+    for(int i = 0; i < capacity - 1; i++) {
+        next[i] = i + 1;                           // Set addresses of next free positions
+    }
+}
+
 
 
 template <typename FunctorObject>
