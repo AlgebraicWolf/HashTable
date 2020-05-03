@@ -76,6 +76,19 @@ size_t List<T>::Size() {
     return size;
 }
 
+template<typename T>
+T List<T>::Get(size_t pos) {
+    if(pos < size) {
+        int cur = head;
+        for(int i = 0; i < pos; i++)
+            cur = next[cur];
+
+        return value[cur];
+    }
+    return static_cast<T>(0);
+}
+
+
 template<typename FunctorObject>
 class HashTable {
 private:
