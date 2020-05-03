@@ -15,7 +15,7 @@ private:
     size_t *nexts;
 public:
 //    List();                                       // Default constructor
-    explicit List(size_t capacity = 32);                     // Constructor according to desired capacity
+    explicit List(size_t capacity = 32);            // Constructor according to desired capacity
     List(const List &lst);                          // Copy constructor
     ~List() noexcept;                               // Destructor
 
@@ -25,8 +25,8 @@ public:
     void Insert(size_t pos, const T &value);        // Insert values after element at pos
     void PushBack(const T &value);                  // Insert values at the end of the list
     T Get(size_t pos);                              // Get element
-    T *GetValuesArray();                                 // Array of values
-    size_t *GetNextsArray();                             // Array of next positions
+    T *GetValuesArray();                            // Array of values
+    size_t *GetNextsArray();                        // Array of next positions
 };
 
 template<typename T>
@@ -237,7 +237,7 @@ void HashTable<FunctorObject, BucketSize>::DumpListLength(const char *filename) 
 template<typename FunctorObject, int BucketSize>
 void HashTable<FunctorObject, BucketSize>::Insert(const char *key, int value) {
     unsigned int pos = hash(key) % capacity;
-    List<KeyValuePair> bucket = table[pos];
+    List<KeyValuePair> &bucket = table[pos];
 
     KeyValuePair *bucketData = bucket.GetValuesArray();
     size_t *nexts = bucket.GetNextsArray();
@@ -250,6 +250,25 @@ void HashTable<FunctorObject, BucketSize>::Insert(const char *key, int value) {
     }
     bucket.PushBack(KeyValuePair(key, value));
 }
+
+template<typename FunctorObject, int BucketSize>
+int HashTable<FunctorObject, BucketSize>::Get(const char *key) {
+    unsigned int bucketNum = hash(key) % capacity;
+    List<KeyValuePair> &bucket = table[bucketNum];
+
+    size_t cur = bucket.Head();
+    size_t *nexts = bucket.GetNextsArray();
+    KeyValuePair *elems = bucket.GetValuesArray();
+
+    for(int i = 0; i < bucket.Size(); i++) {
+        if(!strcmp(elems[cur].key, key))
+            return elems[cur].value;
+        cur = nexts[cur];
+    }
+
+    return -1;
+}
+
 
 int main() {
     List<int> lst(64);
