@@ -170,6 +170,12 @@ HashTable<FunctorObject, BucketSize>::HashTable(const HashTable<FunctorObject, B
     }
 }
 
+template<typename FunctorObject, int BucketSize>
+HashTable<FunctorObject, BucketSize>::HashTable(HashTable &&other): capacity(other.capacity) {
+    table = other.table;
+    other.table = nullptr;
+}
+
 
 int main() {
     List<int> lst(64);
