@@ -151,6 +151,11 @@ HashTable<FunctorObject, BucketSize>::HashTable(size_t n): capacity(n), hash() {
     }
 }
 
+template<typename FunctorObject, int BucketSize>
+HashTable<FunctorObject, BucketSize>::~HashTable() noexcept {
+    delete[] table;
+}
+
 
 int main() {
     List<int> lst(64);
