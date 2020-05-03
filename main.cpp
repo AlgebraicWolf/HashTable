@@ -84,6 +84,32 @@ List<T> &List<T>::operator=(const List &lst) {
 }
 
 template<typename T>
+List<T>& List<T>::operator=(List &&lst) noexcept {
+    delete[] values;
+    delete[] nexts;
+
+    capacity = lst.capacity;
+    size = lst.size;
+    head = lst.head;
+    tail = lst.tail;
+    freeHead = lst.freeHead;
+
+    values = lst.values;
+    nexts = lst.nexts;
+
+    lst.capacity = 0;
+    lst.size = 0;
+    lst.head = 0;
+    lst.tail = 0;
+    lst.freeHead = 0;
+
+    lst.nexts = nullptr;
+    lst.values = nullptr;
+
+    return *this;
+}
+
+template<typename T>
 List<T>::~List() noexcept {
     delete[] values;
     delete[] nexts;
