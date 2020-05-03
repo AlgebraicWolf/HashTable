@@ -31,7 +31,7 @@ public:
 template<typename T>
 List<T>::List(size_t capacity) : capacity(capacity), size(0), head(0), tail(0), freeHead(0) {
     value = new T[capacity];
-    next = new T[capacity];
+    next = new size_t[capacity];
 
     for (int i = 0; i < capacity; i++) {
         next[i] = i + 1;                           // Set addresses of next free positions
@@ -54,6 +54,7 @@ void List<T>::PushBack(const T &val) {
             tail = freeHead;
         } else {
             next[tail] = freeHead;
+            tail = freeHead;
         }
 
         freeHead = next[freeHead];
@@ -130,6 +131,12 @@ public:
 };
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
+    List<int> lst(64);
+    for(int i = 0; i < 128; i += 2) {
+        lst.PushBack(i);
+    }
+
+    for(int i = 0; i < 64; i++) {
+        std::cout << lst.Get(i) << std::endl;
+    }
 }
