@@ -33,7 +33,7 @@ List<T>::List(size_t capacity) : capacity(capacity), size(0), head(0), tail(0), 
     value = new T[capacity];
     next = new size_t[capacity];
 
-    for (int i = 0; i < capacity; i++) {
+    for (int i = 0; i < capacity - 1; i++) {
         next[i] = i + 1;                           // Set addresses of next free positions
     }
 }
@@ -94,8 +94,9 @@ void List<T>::Insert(size_t pos, const T& val) {
     if(size < capacity) {
         int cur = head;
         for(int i = 0; i < pos; i++) {
-            cur = next[head];
+            cur = next[cur];
         }
+
         int newPos = freeHead;
         freeHead = next[freeHead];
 
@@ -103,6 +104,8 @@ void List<T>::Insert(size_t pos, const T& val) {
         next[newPos] = next[cur];
         next[cur] = newPos;
         size++;
+        if(tail == cur)
+            tail = newPos;
     }
 }
 
@@ -132,8 +135,13 @@ public:
 
 int main() {
     List<int> lst(64);
-    for(int i = 0; i < 128; i += 2) {
-        lst.PushBack(i);
+    lst.PushBack(0);
+    for(int i = 1; i < 64; i ++) {
+        lst.Insert(i - 1, i * 2);
+        for(int j = 0; j < 64; j++) {
+            std::cout << lst.NextData()[j] << " ";
+        }
+        std::cout << std::endl;
     }
 
     for(int i = 0; i < 64; i++) {
