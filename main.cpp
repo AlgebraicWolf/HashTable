@@ -9,6 +9,7 @@ private:
     size_t head;
     size_t tail;
     size_t freeHead;
+    size_t freeTail;
 
     T* value;
     size_t* next;
@@ -19,7 +20,7 @@ public:
     ~List() noexcept;                               // Destructor
 
     size_t Size();                                  // Get size
-    void Reserve(size_t n);                         // Allocate space in order to ensure n elements could be placed
+//    void Reserve(size_t n);                         // Allocate space in order to ensure n elements could be placed
     void Insert(size_t pos, const T& value);        // Insert value after element at pos
     void PushBack(const T& value);                  // Insert value at the end of the list
     T Get(size_t pos);                              // Get element
@@ -32,11 +33,16 @@ List<T>::List(size_t capacity) : capacity(capacity), size(0), head(0), tail(0), 
     value = new T[capacity];
     next = new T[capacity];
 
-    for(int i = 0; i < capacity - 1; i++) {
+    for(int i = 0; i < capacity; i++) {
         next[i] = i + 1;                           // Set addresses of next free positions
     }
 }
 
+template<typename T>
+List<T>::~List() noexcept {
+    delete[] value;
+    delete[] next;
+}
 
 
 template <typename FunctorObject>
