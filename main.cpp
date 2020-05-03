@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 
 template<typename T>
 class List {
@@ -9,7 +10,6 @@ private:
     size_t head;
     size_t tail;
     size_t freeHead;
-    size_t freeTail;
 
     T *value;
     size_t *next;
@@ -108,6 +108,16 @@ void List<T>::Insert(size_t pos, const T& val) {
             tail = newPos;
     }
 }
+
+template <typename T>
+List<T>::List(const List<T> &lst): capacity(lst.capacity), size(lst.size), head(lst.head), tail(lst.tail), freeHead(lst.freeHead) {
+    value = new T[capacity];
+    next = new size_t[capacity];
+
+    memcpy(value, lst.value, sizeof(T) * capacity);
+    memcpy(next, lst.next, sizeof(size_t) * capacity);
+}
+
 
 
 template<typename FunctorObject>
