@@ -132,6 +132,8 @@ private:
     size_t capacity;                                // Hash table capacity
     List<KeyValuePair> *table;                      // Hash table itself
     FunctorObject hash;
+
+    void releaseMemory();                           // Function to release memory
 public:
 //    HashTable();                                    // Default constructor
     HashTable(size_t n = 997);                      // Constructor that ensures n different hash values could be stored
@@ -149,6 +151,11 @@ public:
 };
 
 template<typename FunctorObject, int BucketSize>
+void HashTable<FunctorObject, BucketSize>::releaseMemory() {
+    delete[] table;
+}
+
+template<typename FunctorObject, int BucketSize>
 HashTable<FunctorObject, BucketSize>::HashTable(size_t n): capacity(n), hash() {
     table = new List<KeyValuePair>[capacity];
     for (int i = 0; i < capacity; i++) {
@@ -158,7 +165,7 @@ HashTable<FunctorObject, BucketSize>::HashTable(size_t n): capacity(n), hash() {
 
 template<typename FunctorObject, int BucketSize>
 HashTable<FunctorObject, BucketSize>::~HashTable() noexcept {
-    delete[] table;
+    releaseMemory();
 }
 
 template<typename FunctorObject, int BucketSize>
@@ -171,10 +178,27 @@ HashTable<FunctorObject, BucketSize>::HashTable(const HashTable<FunctorObject, B
 }
 
 template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>::HashTable(HashTable &&other): capacity(other.capacity) {
+HashTable<FunctorObject, BucketSize>::HashTable(HashTable<FunctorObject, BucketSize> &&other): capacity(other.capacity) {
     table = other.table;
+
+    other.capacity = 0;
     other.table = nullptr;
 }
+
+template<typename FunctorObject, int BucketSize>
+HashTable<FunctorObject, BucketSize>& HashTable<FunctorObject, BucketSize>::operator=(const HashTable &other) {
+    capacity = other.capacity;
+
+    releaseMemory();
+
+    table = new List<KeyValuePair>[capacity];
+    for(int i = 0; i < capacity; i++) {
+        table[i] = other.table[i];
+    }
+
+    return *this;
+}
+
 
 
 int main() {
