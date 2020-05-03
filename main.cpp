@@ -44,6 +44,23 @@ List<T>::~List() noexcept {
     delete[] next;
 }
 
+template<typename T>
+void List<T>::PushBack(const T &val) {
+    if(capacity - size > 0) {
+        value[freeHead] = val;
+
+        if(!size) {
+            head = freeHead;
+            tail = freeHead;
+        } else {
+            next[tail] = freeHead;
+        }
+
+        freeHead = next[freeHead];
+        size++;
+    }
+}
+
 
 template <typename FunctorObject>
 class HashTable {
