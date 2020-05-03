@@ -120,16 +120,16 @@ List<T>::List(const List<T> &lst): capacity(lst.capacity), size(lst.size), head(
 
 
 
-template<typename FunctorObject>
+template<typename FunctorObject, int BucketSize>
 class HashTable {
 private:
     size_t capacity;                                // Hash table capacity
     List<int> *table;                               // Hash table itself
     FunctorObject hash;
 public:
-    HashTable();                                    // Default constructor
-    HashTable(size_t n);                            // Constructor that ensures n different hash values could be stored
-    ~HashTable() noexcept;                         // Destructor
+//    HashTable();                                    // Default constructor
+    HashTable(size_t n = 997);                      // Constructor that ensures n different hash values could be stored
+    ~HashTable() noexcept;                          // Destructor
     HashTable(const HashTable &other);              // Copy constructor
     HashTable(HashTable &&other);                   // Move constructor
     HashTable &operator=(const HashTable &other);   // Copy assignment
@@ -140,8 +140,17 @@ public:
     void Delete(const char *key);                   // Delete values by key
 
     void DumpListLength(const char *filename);      // Dump lengths of all the lists in the Hash Table
-
 };
+
+template<typename FunctorObject, int BucketSize>
+HashTable<FunctorObject, BucketSize>::HashTable(size_t n): capacity(n), hash() {
+    capacity = n;
+    table = new List<int>[n];
+    for(int i = 0; i < n; i++) {
+        table[i] = List<int>(BucketSize);
+    }
+}
+
 
 int main() {
     List<int> lst(64);
