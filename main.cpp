@@ -14,8 +14,8 @@ private:
     T *value;
     size_t *next;
 public:
-//    List();                                         // Default constructor
-    List(size_t capacity = 32);                          // Constructor according to desired capacity
+//    List();                                       // Default constructor
+    List(size_t capacity = 32);                     // Constructor according to desired capacity
     List(const List &lst);                          // Copy constructor
     ~List() noexcept;                               // Destructor
 
@@ -46,7 +46,7 @@ List<T>::~List() noexcept {
 
 template<typename T>
 void List<T>::PushBack(const T &val) {
-    if (capacity - size > 0) {
+    if (size < capacity) {
         value[freeHead] = val;
 
         if (!size) {
@@ -86,6 +86,23 @@ T List<T>::Get(size_t pos) {
         return value[cur];
     }
     return static_cast<T>(0);
+}
+
+template<typename T>
+void List<T>::Insert(size_t pos, const T& val) {
+    if(size < capacity) {
+        int cur = head;
+        for(int i = 0; i < pos; i++) {
+            cur = next[head];
+        }
+        int newPos = freeHead;
+        freeHead = next[freeHead];
+
+        value[newPos] = val;
+        next[newPos] = next[cur];
+        next[cur] = newPos;
+        size++;
+    }
 }
 
 
