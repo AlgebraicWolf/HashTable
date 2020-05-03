@@ -1,4 +1,4 @@
-#include <iostream>
+#include <fstream>
 #include <cstring>
 
 template<typename T>
@@ -297,11 +297,14 @@ HashTable<FunctorObject, BucketSize> &HashTable<FunctorObject, BucketSize>::oper
 
 template<typename FunctorObject, int BucketSize>
 void HashTable<FunctorObject, BucketSize>::DumpListLength(const char *filename) {
-    FILE *dump = fopen(filename, "w");
+    std::ofstream dumpFile;
+    dumpFile.open(filename);
+
     for (int i = 0; i < capacity; i++) {
-        fprintf(dump, "%d\n", table[i].Size());
+        dumpFile << table[i].Size() << '\n';
     }
-    fclose(dump);
+
+    dumpFile.close();
 }
 
 template<typename FunctorObject, int BucketSize>
