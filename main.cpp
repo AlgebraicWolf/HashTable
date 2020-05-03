@@ -71,6 +71,11 @@ size_t *List<T>::NextData() {
     return next;
 }
 
+template<typename T>
+size_t List<T>::Size() {
+    return size;
+}
+
 template<typename FunctorObject>
 class HashTable {
 private:
