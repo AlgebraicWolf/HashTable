@@ -315,8 +315,11 @@ void HashTable<FunctorObject, BucketSize>::Insert(const char *key, int value) {
     int cur = bucket.Head();
 
     for (int i = 0; i < bucket.Size(); i++) {
-        if (!strcmp(bucketData[cur].key, key))
+        if (!strcmp(bucketData[cur].key, key)) {
+            bucketData[cur].value = value;
             return;
+        }
+        cur = nexts[cur];
     }
     bucket.PushBack(KeyValuePair(key, value));
 }
