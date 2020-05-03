@@ -79,9 +79,9 @@ size_t List<T>::Size() {
 
 template<typename T>
 T List<T>::Get(size_t pos) {
-    if(pos < size) {
+    if (pos < size) {
         int cur = head;
-        for(int i = 0; i < pos; i++)
+        for (int i = 0; i < pos; i++)
             cur = nexts[cur];
 
         return values[cur];
@@ -90,10 +90,10 @@ T List<T>::Get(size_t pos) {
 }
 
 template<typename T>
-void List<T>::Insert(size_t pos, const T& val) {
-    if(size < capacity) {
+void List<T>::Insert(size_t pos, const T &val) {
+    if (size < capacity) {
         int cur = head;
-        for(int i = 0; i < pos; i++) {
+        for (int i = 0; i < pos; i++) {
             cur = nexts[cur];
         }
 
@@ -104,13 +104,14 @@ void List<T>::Insert(size_t pos, const T& val) {
         nexts[newPos] = nexts[cur];
         nexts[cur] = newPos;
         size++;
-        if(tail == cur)
+        if (tail == cur)
             tail = newPos;
     }
 }
 
-template <typename T>
-List<T>::List(const List<T> &lst): capacity(lst.capacity), size(lst.size), head(lst.head), tail(lst.tail), freeHead(lst.freeHead) {
+template<typename T>
+List<T>::List(const List<T> &lst): capacity(lst.capacity), size(lst.size), head(lst.head), tail(lst.tail),
+                                   freeHead(lst.freeHead) {
     values = new T[capacity];
     nexts = new size_t[capacity];
 
@@ -119,12 +120,17 @@ List<T>::List(const List<T> &lst): capacity(lst.capacity), size(lst.size), head(
 }
 
 
-
 template<typename FunctorObject, int BucketSize>
 class HashTable {
 private:
+    struct KeyValuePair {
+        char *key;
+        int keyLength;
+        int value;
+    };
+
     size_t capacity;                                // Hash table capacity
-    List<int> *table;                               // Hash table itself
+    List<KeyValuePair> *table;                      // Hash table itself
     FunctorObject hash;
 public:
 //    HashTable();                                    // Default constructor
@@ -144,10 +150,9 @@ public:
 
 template<typename FunctorObject, int BucketSize>
 HashTable<FunctorObject, BucketSize>::HashTable(size_t n): capacity(n), hash() {
-    capacity = n;
-    table = new List<int>[n];
-    for(int i = 0; i < n; i++) {
-        table[i] = List<int>(BucketSize);
+    table = new List<KeyValuePair>[capacity];
+    for (int i = 0; i < capacity; i++) {
+        table[i] = List<KeyValuePair>(BucketSize);
     }
 }
 
@@ -156,19 +161,28 @@ HashTable<FunctorObject, BucketSize>::~HashTable() noexcept {
     delete[] table;
 }
 
+template<typename FunctorObject, int BucketSize>
+HashTable<FunctorObject, BucketSize>::HashTable(const HashTable<FunctorObject, BucketSize> &other): capacity(other.capacity), hash() {
+    table = new List<KeyValuePair>[capacity];
+
+    for(int i = 0; i < capacity; i++) {
+        table[i] = other.table[i];
+    }
+}
+
 
 int main() {
     List<int> lst(64);
     lst.PushBack(0);
-    for(int i = 1; i < 64; i ++) {
+    for (int i = 1; i < 64; i++) {
         lst.Insert(i - 1, i * 2);
-        for(int j = 0; j < 64; j++) {
+        for (int j = 0; j < 64; j++) {
             std::cout << lst.GetNextsArray()[j] << " ";
         }
         std::cout << std::endl;
     }
 
-    for(int i = 0; i < 64; i++) {
+    for (int i = 0; i < 64; i++) {
         std::cout << lst.Get(i) << std::endl;
     }
 }
