@@ -1,6 +1,6 @@
 #include <iostream>
 
-template <typename T>
+template<typename T>
 class List {
 private:
     size_t capacity;
@@ -11,20 +11,20 @@ private:
     size_t freeHead;
     size_t freeTail;
 
-    T* value;
-    size_t* next;
+    T *value;
+    size_t *next;
 public:
 //    List();                                         // Default constructor
     List(size_t capacity = 32);                          // Constructor according to desired capacity
-    List(const List& lst);                          // Copy constructor
+    List(const List &lst);                          // Copy constructor
     ~List() noexcept;                               // Destructor
 
     size_t Size();                                  // Get size
 //    void Reserve(size_t n);                         // Allocate space in order to ensure n elements could be placed
-    void Insert(size_t pos, const T& value);        // Insert value after element at pos
-    void PushBack(const T& value);                  // Insert value at the end of the list
+    void Insert(size_t pos, const T &value);        // Insert value after element at pos
+    void PushBack(const T &value);                  // Insert value at the end of the list
     T Get(size_t pos);                              // Get element
-    T* ValueData();                                 // Array of values
+    T *ValueData();                                 // Array of values
     size_t *NextData();                             // Array of next positions
 };
 
@@ -33,7 +33,7 @@ List<T>::List(size_t capacity) : capacity(capacity), size(0), head(0), tail(0), 
     value = new T[capacity];
     next = new T[capacity];
 
-    for(int i = 0; i < capacity; i++) {
+    for (int i = 0; i < capacity; i++) {
         next[i] = i + 1;                           // Set addresses of next free positions
     }
 }
@@ -46,10 +46,10 @@ List<T>::~List() noexcept {
 
 template<typename T>
 void List<T>::PushBack(const T &val) {
-    if(capacity - size > 0) {
+    if (capacity - size > 0) {
         value[freeHead] = val;
 
-        if(!size) {
+        if (!size) {
             head = freeHead;
             tail = freeHead;
         } else {
@@ -61,8 +61,17 @@ void List<T>::PushBack(const T &val) {
     }
 }
 
+template<typename T>
+T *List<T>::ValueData() {
+    return value;
+}
 
-template <typename FunctorObject>
+template<typename T>
+size_t *List<T>::NextData() {
+    return next;
+}
+
+template<typename FunctorObject>
 class HashTable {
 private:
     size_t capacity;                                // Hash table capacity
@@ -71,13 +80,13 @@ private:
 public:
     HashTable();                                    // Default constructor
     HashTable(size_t n);                            // Constructor that ensures n different hash values could be stored
-    ~HashTable() noexcept ;                         // Destructor
-    HashTable(const HashTable& other);              // Copy constructor
-    HashTable(HashTable&& other);                   // Move constructor
-    HashTable& operator=(const HashTable& other);   // Copy assignment
-    HashTable& operator=(HashTable&& other);        // Move assignment
+    ~HashTable() noexcept;                         // Destructor
+    HashTable(const HashTable &other);              // Copy constructor
+    HashTable(HashTable &&other);                   // Move constructor
+    HashTable &operator=(const HashTable &other);   // Copy assignment
+    HashTable &operator=(HashTable &&other);        // Move assignment
 
-    void Insert(const char* key, int value);        // Insertion method
+    void Insert(const char *key, int value);        // Insertion method
     int Get(const char *key);                       // Get value by key
     void Delete(const char *key);                   // Delete value by key
 
