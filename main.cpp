@@ -15,7 +15,7 @@ private:
     size_t *nexts;
 public:
 //    List();                                       // Default constructor
-    List(size_t capacity = 32);                     // Constructor according to desired capacity
+    explicit List(size_t capacity = 32);                     // Constructor according to desired capacity
     List(const List &lst);                          // Copy constructor
     ~List() noexcept;                               // Destructor
 
@@ -136,10 +136,10 @@ private:
     void releaseMemory();                           // Function to release memory
 public:
 //    HashTable();                                    // Default constructor
-    HashTable(size_t n = 997);                      // Constructor that ensures n different hash values could be stored
+    explicit HashTable(size_t n = 997);                      // Constructor that ensures n different hash values could be stored
     ~HashTable() noexcept;                          // Destructor
     HashTable(const HashTable &other);              // Copy constructor
-    HashTable(HashTable &&other);                   // Move constructor
+    HashTable(HashTable &&other) noexcept;                   // Move constructor
     HashTable &operator=(const HashTable &other);   // Copy assignment
     HashTable &operator=(HashTable &&other);        // Move assignment
 
@@ -169,16 +169,18 @@ HashTable<FunctorObject, BucketSize>::~HashTable() noexcept {
 }
 
 template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>::HashTable(const HashTable<FunctorObject, BucketSize> &other): capacity(other.capacity), hash() {
+HashTable<FunctorObject, BucketSize>::HashTable(const HashTable<FunctorObject, BucketSize> &other): capacity(
+        other.capacity), hash() {
     table = new List<KeyValuePair>[capacity];
 
-    for(int i = 0; i < capacity; i++) {
+    for (int i = 0; i < capacity; i++) {
         table[i] = other.table[i];
     }
 }
 
 template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>::HashTable(HashTable<FunctorObject, BucketSize> &&other): capacity(other.capacity) {
+HashTable<FunctorObject, BucketSize>::HashTable(HashTable<FunctorObject, BucketSize> &&other) noexcept: capacity(
+        other.capacity) {
     table = other.table;
 
     other.capacity = 0;
@@ -186,13 +188,14 @@ HashTable<FunctorObject, BucketSize>::HashTable(HashTable<FunctorObject, BucketS
 }
 
 template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>& HashTable<FunctorObject, BucketSize>::operator=(const HashTable &other) {
+HashTable<FunctorObject, BucketSize> &
+HashTable<FunctorObject, BucketSize>::operator=(const HashTable<FunctorObject, BucketSize> &other) {
     capacity = other.capacity;
 
     releaseMemory();
 
     table = new List<KeyValuePair>[capacity];
-    for(int i = 0; i < capacity; i++) {
+    for (int i = 0; i < capacity; i++) {
         table[i] = other.table[i];
     }
 
@@ -200,7 +203,7 @@ HashTable<FunctorObject, BucketSize>& HashTable<FunctorObject, BucketSize>::oper
 }
 
 template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>& HashTable<FunctorObject, BucketSize>::operator=(HashTable &&other) {
+HashTable<FunctorObject, BucketSize> &HashTable<FunctorObject, BucketSize>::operator=(HashTable &&other) {
     releaseMemory();
 
     table = other.table;
@@ -208,6 +211,8 @@ HashTable<FunctorObject, BucketSize>& HashTable<FunctorObject, BucketSize>::oper
 
     other.capacity = 0;
     other.table = nullptr;
+
+    return *this;
 }
 
 int main() {
