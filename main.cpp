@@ -46,7 +46,7 @@ void List<T>::Reserve(size_t n) {
         memcpy(newNexts, nexts, sizeof(size_t) * capacity);
         memcpy(newValues, values, sizeof(T) * capacity);
 
-        for(int i = capacity; i < n; i++) {
+        for (int i = capacity; i < n; i++) {
             newNexts[i] = i + 1;
         }
 
@@ -105,7 +105,7 @@ List<T> &List<T>::operator=(const List &lst) {
 }
 
 template<typename T>
-List<T>& List<T>::operator=(List &&lst) noexcept {
+List<T> &List<T>::operator=(List &&lst) noexcept {
     delete[] values;
     delete[] nexts;
 
@@ -138,20 +138,24 @@ List<T>::~List() noexcept {
 
 template<typename T>
 void List<T>::PushBack(const T &val) {
-    if (size < capacity) {
-        values[freeHead] = val;
-
-        if (!size) {
-            head = freeHead;
-            tail = freeHead;
-        } else {
-            nexts[tail] = freeHead;
-            tail = freeHead;
-        }
-
-        freeHead = nexts[freeHead];
-        size++;
+    if (size == capacity) {
+        capacity *= 2;
+        Reserve( capacity);
     }
+
+    values[freeHead] = val;
+
+    if (!size) {
+        head = freeHead;
+        tail = freeHead;
+    } else {
+        nexts[tail] = freeHead;
+        tail = freeHead;
+    }
+
+    freeHead = nexts[freeHead];
+    size++;
+
 }
 
 template<typename T>
@@ -183,22 +187,26 @@ T List<T>::Get(size_t pos) {
 
 template<typename T>
 void List<T>::Insert(size_t pos, const T &val) {
-    if (size < capacity) {
-        int cur = head;
-        for (int i = 0; i < pos; i++) {
-            cur = nexts[cur];
-        }
-
-        int newPos = freeHead;
-        freeHead = nexts[freeHead];
-
-        values[newPos] = val;
-        nexts[newPos] = nexts[cur];
-        nexts[cur] = newPos;
-        size++;
-        if (tail == cur)
-            tail = newPos;
+    if (size == capacity) {
+        capacity *= 2;
+        Reserve(capacity);
     }
+
+    int cur = head;
+    for (int i = 0; i < pos; i++) {
+        cur = nexts[cur];
+    }
+
+    int newPos = freeHead;
+    freeHead = nexts[freeHead];
+
+    values[newPos] = val;
+    nexts[newPos] = nexts[cur];
+    nexts[cur] = newPos;
+    size++;
+    if (tail == cur)
+        tail = newPos;
+
 }
 
 template<typename T>
