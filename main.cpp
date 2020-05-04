@@ -24,7 +24,7 @@ public:
 
     size_t Head();                                  // Get head
     size_t Size();                                  // Get size
-//    void Reserve(size_t n);                         // Allocate space in order to ensure n elements could be placed
+    void Reserve(size_t n);                         // Allocate space in order to ensure n elements could be placed
     void Insert(size_t pos, const T &value);        // Insert values after element at pos
     void PushBack(const T &value);                  // Insert values at the end of the list
     T Get(size_t pos);                              // Get element
@@ -38,11 +38,32 @@ size_t List<T>::Head() {
 }
 
 template<typename T>
+void List<T>::Reserve(size_t n) {
+    if (capacity < n) {
+        size_t *newNexts = new size_t[n];
+        T *newValues = new T[n];
+
+        memcpy(newNexts, nexts, sizeof(size_t) * capacity);
+        memcpy(newValues, values, sizeof(T) * capacity);
+
+        for(int i = capacity; i < n; i++) {
+            newNexts[i] = i + 1;
+        }
+
+        delete[] values;
+        delete[] nexts;
+
+        values = newValues;
+        nexts = newNexts;
+    }
+}
+
+template<typename T>
 List<T>::List(size_t capacity) : capacity(capacity), size(0), head(0), tail(0), freeHead(0) {
     values = new T[capacity];
     nexts = new size_t[capacity];
 
-    for (int i = 0; i < capacity - 1; i++) {
+    for (int i = 0; i < capacity; i++) {
         nexts[i] = i + 1;                           // Set addresses of next free positions
     }
 }
