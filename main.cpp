@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include <cstring>
 
 template<typename T>
@@ -139,8 +140,8 @@ List<T>::~List() noexcept {
 template<typename T>
 void List<T>::PushBack(const T &val) {
     if (size == capacity) {
+        Reserve( 2 * capacity);
         capacity *= 2;
-        Reserve( capacity);
     }
 
     values[freeHead] = val;
@@ -188,8 +189,8 @@ T List<T>::Get(size_t pos) {
 template<typename T>
 void List<T>::Insert(size_t pos, const T &val) {
     if (size == capacity) {
+        Reserve(2 * capacity);
         capacity *= 2;
-        Reserve(capacity);
     }
 
     int cur = head;
@@ -382,7 +383,7 @@ struct HashFunctor {
 
 
 int main() {
-    HashTable<HashFunctor, 64> ht(997);
+    HashTable<HashFunctor, 1> ht(997);
     ht.Insert("abc", 1);
     ht.Insert("bcd", 2);
     ht.Insert("friends", 4417);
