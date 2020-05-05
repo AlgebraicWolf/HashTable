@@ -9,13 +9,15 @@ private:
     size_t capacity;
     size_t size;
 
-    size_t head;
+
     size_t tail;
     size_t freeHead;
 
     T *values;
     size_t *nexts;
 public:
+    size_t head;
+
 //    List();                                       // Default constructor
     explicit List(size_t capacity = 32);            // Constructor according to desired capacity
     List(const List &lst);                          // Copy constructor
@@ -141,7 +143,7 @@ List<T>::~List() noexcept {
 template<typename T>
 void List<T>::PushBack(const T &val) {
     if (size == capacity) {
-        Reserve( 2 * capacity);
+        Reserve(2 * capacity);
         capacity *= 2;
     }
 
@@ -222,7 +224,7 @@ List<T>::List(const List<T> &lst): capacity(lst.capacity), size(lst.size), head(
 }
 
 
-template<typename FunctorObject, int BucketSize>
+template<int BucketSize>
 class HashTable {
 private:
     struct KeyValuePair {
@@ -236,7 +238,7 @@ private:
 
     size_t capacity;                                // Hash table capacity
     List<KeyValuePair> *table;                      // Hash table itself
-    FunctorObject hash;
+    unsigned int hash(const char *key);
 
     void releaseMemory();                           // Function to release memory
 public:
@@ -256,32 +258,43 @@ public:
     void DumpListLength(const char *filename);      // Dump lengths of all the lists in the Hash Table
 };
 
-template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>::KeyValuePair::KeyValuePair(const char *key, int value): value(value) {
+template<int BucketSize>
+unsigned int HashTable<BucketSize>::hash(const char *key) {
+    size_t len = strlen(key);
+    unsigned int hash = 0;
+
+    for(int i = 0; i < len; i++)
+        hash = _mm_crc32_u8(hash, key[i]);
+
+    return hash;
+}
+
+template<int BucketSize>
+HashTable<BucketSize>::KeyValuePair::KeyValuePair(const char *key, int value): value(value) {
     this->key = key;
 }
 
-template<typename FunctorObject, int BucketSize>
-void HashTable<FunctorObject, BucketSize>::releaseMemory() {
+template<int BucketSize>
+void HashTable<BucketSize>::releaseMemory() {
     delete[] table;
 }
 
-template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>::HashTable(size_t n): capacity(n), hash() {
+template<int BucketSize>
+HashTable<BucketSize>::HashTable(size_t n): capacity(n) {
     table = new List<KeyValuePair>[capacity];
     for (int i = 0; i < capacity; i++) {
         table[i] = List<KeyValuePair>(BucketSize);
     }
 }
 
-template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>::~HashTable() noexcept {
+template<int BucketSize>
+HashTable<BucketSize>::~HashTable() noexcept {
     releaseMemory();
 }
 
-template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>::HashTable(const HashTable<FunctorObject, BucketSize> &other): capacity(
-        other.capacity), hash() {
+template<int BucketSize>
+HashTable<BucketSize>::HashTable(const HashTable<BucketSize> &other): capacity(
+        other.capacity) {
     table = new List<KeyValuePair>[capacity];
 
     for (int i = 0; i < capacity; i++) {
@@ -289,8 +302,8 @@ HashTable<FunctorObject, BucketSize>::HashTable(const HashTable<FunctorObject, B
     }
 }
 
-template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize>::HashTable(HashTable<FunctorObject, BucketSize> &&other) noexcept: capacity(
+template<int BucketSize>
+HashTable<BucketSize>::HashTable(HashTable<BucketSize> &&other) noexcept: capacity(
         other.capacity) {
     table = other.table;
 
@@ -298,9 +311,9 @@ HashTable<FunctorObject, BucketSize>::HashTable(HashTable<FunctorObject, BucketS
     other.table = nullptr;
 }
 
-template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize> &
-HashTable<FunctorObject, BucketSize>::operator=(const HashTable<FunctorObject, BucketSize> &other) {
+template<int BucketSize>
+HashTable<BucketSize> &
+HashTable<BucketSize>::operator=(const HashTable<BucketSize> &other) {
     capacity = other.capacity;
 
     releaseMemory();
@@ -313,8 +326,8 @@ HashTable<FunctorObject, BucketSize>::operator=(const HashTable<FunctorObject, B
     return *this;
 }
 
-template<typename FunctorObject, int BucketSize>
-HashTable<FunctorObject, BucketSize> &HashTable<FunctorObject, BucketSize>::operator=(HashTable &&other) {
+template<int BucketSize>
+HashTable<BucketSize> &HashTable<BucketSize>::operator=(HashTable &&other) {
     releaseMemory();
 
     table = other.table;
@@ -326,8 +339,8 @@ HashTable<FunctorObject, BucketSize> &HashTable<FunctorObject, BucketSize>::oper
     return *this;
 }
 
-template<typename FunctorObject, int BucketSize>
-void HashTable<FunctorObject, BucketSize>::DumpListLength(const char *filename) {
+template<int BucketSize>
+void HashTable<BucketSize>::DumpListLength(const char *filename) {
     std::ofstream dumpFile;
     dumpFile.open(filename);
 
@@ -338,8 +351,8 @@ void HashTable<FunctorObject, BucketSize>::DumpListLength(const char *filename) 
     dumpFile.close();
 }
 
-template<typename FunctorObject, int BucketSize>
-void HashTable<FunctorObject, BucketSize>::Insert(const char *key, int value) {
+template<int BucketSize>
+void HashTable<BucketSize>::Insert(const char *key, int value) {
     unsigned int pos = hash(key) % capacity;
     List<KeyValuePair> &bucket = table[pos];
 
@@ -358,8 +371,8 @@ void HashTable<FunctorObject, BucketSize>::Insert(const char *key, int value) {
     bucket.PushBack(KeyValuePair(key, value));
 }
 
-template<typename FunctorObject, int BucketSize>
-int HashTable<FunctorObject, BucketSize>::Get(const char *key) {
+template<int BucketSize>
+int HashTable<BucketSize>::Get(const char *key) {
     unsigned int bucketNum = hash(key) % capacity;
     List<KeyValuePair> &bucket = table[bucketNum];
 
@@ -375,19 +388,6 @@ int HashTable<FunctorObject, BucketSize>::Get(const char *key) {
 
     return -1;
 }
-
-struct HashFunctor {
-    unsigned int operator()(const char *key) {
-        unsigned int len = strlen(key);
-        unsigned int hash = 0;
-
-        for(int i = 0; i < len; i++) {
-            hash = _mm_crc32_u8(hash, key[i]);
-        }
-
-        return hash;
-    }
-};
 
 size_t getFilesize(FILE *f) {
     fseek(f, 0, SEEK_END);
@@ -418,7 +418,7 @@ char **splitWordlist(char *words, size_t *wordCount) {
 
     char *start = words;
 
-    while(words = strchr(words, '\n')) {
+    while (words = strchr(words, '\n')) {
         (*wordCount)++;
         *words = '\0';
         words++;
@@ -426,9 +426,9 @@ char **splitWordlist(char *words, size_t *wordCount) {
 
     words = start;
 
-    char **wordlist = new char*[*wordCount];
+    char **wordlist = new char *[*wordCount];
 
-    for(int i = 0; i < *wordCount; i++) {
+    for (int i = 0; i < *wordCount; i++) {
         wordlist[i] = words;
         words = strchr(words, '\0');
         words++;
@@ -442,21 +442,15 @@ int main() {
     size_t wordcount = 0;
     char **wordlist = splitWordlist(words, &wordcount);
 
-    HashTable<HashFunctor, 64> ht(2767);
+    HashTable<64> ht(207725);
 
-    for(int i = 0; i < wordcount; i++) {
+    for (int i = 0; i < wordcount; i++) {
         ht.Insert(wordlist[i], i);
-
-        if((i + 1) % 1000 == 0)
-            std::cout << "Inserted: " << i + 1 << std::endl;
     }
 
-    for(int i = 0; i < wordcount; i++) {
-        if(ht.Get(wordlist[i]) != i)
-            std::cout << "Uh oh" << std::endl;
-        if((i + 1) % 1000 == 0)
-            std::cout << "Checked: " << i + 1 << std::endl;
+    for (int t = 0; t < 400; t++) {
+        for (int i = 0; i < wordcount; i++) {
+            ht.Get(wordlist[i]);
+        }
     }
-
-    ht.DumpListLength("crc32.txt");
 }
