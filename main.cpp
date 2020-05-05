@@ -40,7 +40,8 @@ public:
     size_t *GetNextsArray();                        // Array of next positions
 
     template<int BucketSize>
-    friend class HashTable;
+    friend
+    class HashTable;
 };
 
 template<typename T>
@@ -270,7 +271,7 @@ unsigned int HashTable<BucketSize>::hash(const char *key) {
     size_t len = strlen(key);
     unsigned int hash = 0;
 
-    for(int i = 0; i < len; i++)
+    for (int i = 0; i < len; i++)
         hash = _mm_crc32_u8(hash, key[i]);
 
     return hash;
@@ -383,7 +384,7 @@ int HashTable<BucketSize>::Get(const char *key) {
     size_t len = strlen(key);
     unsigned int hashValue = 0;
 
-    for(int i = 0; i < len; i++)
+    for (int i = 0; i < len; i++)
         hashValue = _mm_crc32_u8(hashValue, key[i]);
 
     unsigned int bucketNum = hashValue % capacity;
@@ -395,9 +396,59 @@ int HashTable<BucketSize>::Get(const char *key) {
     KeyValuePair *elems = bucket.values;
 
     for (int i = 0; i < bucket.size; i++) {
-        if (!strcmp(elems[cur].key, key))
-            return elems[cur].value;
+        const char *cur_elem = elems[cur].key;
+        asm goto (
+        ".intel_syntax noprefix;"
+        "mov rax, %0;"
+        "mov rbx, %1;"
+        "vpxor ymm2, ymm2, ymm2;"
+        "cmpcycle:;"
+        "vmovdqa ymm0, [rax];"
+        "vmovdqa ymm1, [rbx];"
+        "vpcmpeqb ymm3, ymm0, ymm1;"
+        "vpmovmskb ecx, ymm3;"
+        "not ecx;"
+        "cmp ecx, 0;"
+        "jne %l2;"
+        "vpcmpeqb ymm3, ymm0, ymm2;"
+        "vpmovmskb ecx, ymm3;"
+        "cmp ecx, 0;"
+        "lea rax, [rax+32];"
+        "lea rbx, [rbx+32];"
+        "je cmpcycle;"
+        ".att_syntax prefix"
+        :
+        : "r"(key), "r"(cur_elem)
+        : "rax", "rbx", "rcx", "ymm0", "ymm1", "ymm2", "ymm3"
+        : mismatch);
+        return elems[cur].value;
+
+        mismatch:
         cur = nexts[cur];
+
+//        __m256i key_batch = _mm256_load_si256(reinterpret_cast<const __m256i *>(key));
+//        __m256i elem_batch = _mm256_load_si256(reinterpret_cast<const __m256i *>(cur_elem));
+//
+//        __m256i eos_mask = _mm256_set_epi64x(0, 0, 0, 0);
+//        __m256i cmpres;
+//        while(true) {
+//            cmpres = _mm256_cmpeq_epi8(key_batch, elem_batch);
+//            if(~_mm256_movemask_epi8(cmpres)) {
+//               cur = nexts[cur];
+//               break;
+//            }
+//
+//            cmpres = _mm256_cmpeq_epi8(key_batch, eos_mask);
+//            if(_mm256_movemask_epi8(cmpres)) {
+//                return elems[cur].value;
+//            }
+//
+//            key += 32;
+//            cur_elem += 32;
+//
+//            key_batch = _mm256_load_si256(reinterpret_cast<const __m256i *>(key));
+//            elem_batch = _mm256_load_si256(reinterpret_cast<const __m256i *>(cur_elem));
+//        }
     }
 
     return -1;
@@ -437,7 +488,7 @@ char **splitWordlist(char *words, size_t *wordCount) {
 
     while (words) {
         wordEnd = strchr(words, '\n');
-        if(!wordEnd)
+        if (!wordEnd)
             break;
 
         totalLength += (wordEnd - words + 1) + (32 - (wordEnd - words + 1) % 32);
@@ -450,13 +501,15 @@ char **splitWordlist(char *words, size_t *wordCount) {
     words = start;
 
     char **wordlist = new char *[*wordCount];
-    char *alignedWords = new char[totalLength];
+    char *alignedWords = new char[totalLength + 16];
+    if (reinterpret_cast<size_t>(alignedWords) % 32)
+        alignedWords += 16;
 
     for (int i = 0; i < *wordCount; i++) {
         wordlist[i] = alignedWords;
         memcpy(alignedWords, words, strlen(words));
         wordEnd = strchr(words, '\0');
-        alignedWords +=  (wordEnd - words + 1) + (32 - (wordEnd - words + 1) % 32);
+        alignedWords += (wordEnd - words + 1) + (32 - (wordEnd - words + 1) % 32);
         words = wordEnd;
         words++;
     }
