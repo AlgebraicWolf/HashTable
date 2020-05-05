@@ -373,7 +373,14 @@ void HashTable<BucketSize>::Insert(const char *key, int value) {
 
 template<int BucketSize>
 int HashTable<BucketSize>::Get(const char *key) {
-    unsigned int bucketNum = hash(key) % capacity;
+    size_t len = strlen(key);
+    unsigned int hashValue = 0;
+
+    for(int i = 0; i < len; i++)
+        hashValue = _mm_crc32_u8(hashValue, key[i]);
+
+    unsigned int bucketNum = hashValue % capacity;
+    
     List<KeyValuePair> &bucket = table[bucketNum];
 
     size_t cur = bucket.Head();
