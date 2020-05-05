@@ -268,11 +268,12 @@ public:
 
 template<int BucketSize>
 unsigned int HashTable<BucketSize>::hash(const char *key) {
-    size_t len = strlen(key);
     unsigned int hash = 0;
 
-    for (int i = 0; i < len; i++)
-        hash = _mm_crc32_u8(hash, key[i]);
+    while(*key) {
+        hash = _mm_crc32_u8(hash, *key);
+        key++;
+    }
 
     return hash;
 }
@@ -381,11 +382,22 @@ void HashTable<BucketSize>::Insert(const char *key, int value) {
 
 template<int BucketSize>
 int HashTable<BucketSize>::Get(const char *key) {
-    size_t len = strlen(key);
     unsigned int hashValue = 0;
+    asm(
+    ".intel_syntax noprefix;"
+    "lea rax, [%1];"
+    "xor %0, %0;"
 
-    for (int i = 0; i < len; i++)
-        hashValue = _mm_crc32_u8(hashValue, key[i]);
+    "hashing:;"
+    "crc32 %0, byte ptr [rax];"
+    "inc rax;"
+    "cmp byte ptr [rax], 0;"
+    "jne hashing;"
+
+    ".att_syntax prefix;"
+    : "=r"(hashValue)
+    : "r"(key)
+    : "rax", "rcx");
 
     unsigned int bucketNum = hashValue % capacity;
 
@@ -425,30 +437,6 @@ int HashTable<BucketSize>::Get(const char *key) {
 
         mismatch:
         cur = nexts[cur];
-
-//        __m256i key_batch = _mm256_load_si256(reinterpret_cast<const __m256i *>(key));
-//        __m256i elem_batch = _mm256_load_si256(reinterpret_cast<const __m256i *>(cur_elem));
-//
-//        __m256i eos_mask = _mm256_set_epi64x(0, 0, 0, 0);
-//        __m256i cmpres;
-//        while(true) {
-//            cmpres = _mm256_cmpeq_epi8(key_batch, elem_batch);
-//            if(~_mm256_movemask_epi8(cmpres)) {
-//               cur = nexts[cur];
-//               break;
-//            }
-//
-//            cmpres = _mm256_cmpeq_epi8(key_batch, eos_mask);
-//            if(_mm256_movemask_epi8(cmpres)) {
-//                return elems[cur].value;
-//            }
-//
-//            key += 32;
-//            cur_elem += 32;
-//
-//            key_batch = _mm256_load_si256(reinterpret_cast<const __m256i *>(key));
-//            elem_batch = _mm256_load_si256(reinterpret_cast<const __m256i *>(cur_elem));
-//        }
     }
 
     return -1;
