@@ -431,8 +431,17 @@ char **splitWordlist(char *words, size_t *wordCount) {
     *wordCount = 0;
 
     char *start = words;
+    char *wordEnd = nullptr;
 
-    while (words = strchr(words, '\n')) {
+    size_t totalLength = 0;
+
+    while (words) {
+        wordEnd = strchr(words, '\n');
+        if(!wordEnd)
+            break;
+
+        totalLength += (wordEnd - words + 1) + (32 - (wordEnd - words + 1) % 32);
+        words = wordEnd;
         (*wordCount)++;
         *words = '\0';
         words++;
@@ -441,10 +450,14 @@ char **splitWordlist(char *words, size_t *wordCount) {
     words = start;
 
     char **wordlist = new char *[*wordCount];
+    char *alignedWords = new char[totalLength];
 
     for (int i = 0; i < *wordCount; i++) {
-        wordlist[i] = words;
-        words = strchr(words, '\0');
+        wordlist[i] = alignedWords;
+        memcpy(alignedWords, words, strlen(words));
+        wordEnd = strchr(words, '\0');
+        alignedWords +=  (wordEnd - words + 1) + (32 - (wordEnd - words + 1) % 32);
+        words = wordEnd;
         words++;
     }
 
@@ -456,7 +469,7 @@ int main() {
     size_t wordcount = 0;
     char **wordlist = splitWordlist(words, &wordcount);
 
-    HashTable<64> ht(207725);
+    HashTable<64> ht(wordcount);
 
     for (int i = 0; i < wordcount; i++) {
         ht.Insert(wordlist[i], i);
