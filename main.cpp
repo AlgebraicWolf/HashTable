@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstring>
+#include <immintrin.h>
 
 template<typename T>
 class List {
@@ -377,15 +378,85 @@ int HashTable<FunctorObject, BucketSize>::Get(const char *key) {
 
 struct HashFunctor {
     unsigned int operator()(const char *key) {
-        return 1;
+        unsigned int len = strlen(key);
+        unsigned int hash = 0;
+
+        for(int i = 0; i < len; i++) {
+            hash = _mm_crc32_u8(hash, key[i]);
+        }
+
+        return hash;
     }
 };
 
+size_t getFilesize(FILE *f) {
+    fseek(f, 0, SEEK_END);
+    size_t size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    return size;
+}
+
+
+char *loadFile(const char *filename, size_t *fileSize) {
+    FILE *input = fopen(filename, "r");
+
+    size_t size = getFilesize(input);
+    if (fileSize)
+        *fileSize = size;
+
+    char *content = (char *) calloc(size, sizeof(char));
+    fread(content, sizeof(char), size, input);
+
+    fclose(input);
+
+    return content;
+}
+
+char **splitWordlist(char *words, size_t *wordCount) {
+    *wordCount = 0;
+
+    char *start = words;
+
+    while(words = strchr(words, '\n')) {
+        (*wordCount)++;
+        *words = '\0';
+        words++;
+    }
+
+    words = start;
+
+    char **wordlist = new char*[*wordCount];
+
+    for(int i = 0; i < *wordCount; i++) {
+        wordlist[i] = words;
+        words = strchr(words, '\0');
+        words++;
+    }
+
+    return wordlist;
+}
 
 int main() {
-    HashTable<HashFunctor, 1> ht(997);
-    ht.Insert("abc", 1);
-    ht.Insert("bcd", 2);
-    ht.Insert("friends", 4417);
-    std::cout << ht.Get("abc") << ht.Get("bcd") << ht.Get("friends");
+    char *words = loadFile("wordlist.txt", nullptr);
+    size_t wordcount = 0;
+    char **wordlist = splitWordlist(words, &wordcount);
+
+    HashTable<HashFunctor, 64> ht(2767);
+
+    for(int i = 0; i < wordcount; i++) {
+        ht.Insert(wordlist[i], i);
+
+        if((i + 1) % 1000 == 0)
+            std::cout << "Inserted: " << i + 1 << std::endl;
+    }
+
+    for(int i = 0; i < wordcount; i++) {
+        if(ht.Get(wordlist[i]) != i)
+            std::cout << "Uh oh" << std::endl;
+        if((i + 1) % 1000 == 0)
+            std::cout << "Checked: " << i + 1 << std::endl;
+    }
+
+    ht.DumpListLength("crc32.txt");
 }
