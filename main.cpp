@@ -3,6 +3,9 @@
 #include <cstring>
 #include <immintrin.h>
 
+template<int BucketSize>
+class HashTable;
+
 template<typename T>
 class List {
 private:
@@ -15,8 +18,9 @@ private:
 
     T *values;
     size_t *nexts;
-public:
     size_t head;
+public:
+
 
 //    List();                                       // Default constructor
     explicit List(size_t capacity = 32);            // Constructor according to desired capacity
@@ -34,6 +38,9 @@ public:
     T Get(size_t pos);                              // Get element
     T *GetValuesArray();                            // Array of values
     size_t *GetNextsArray();                        // Array of next positions
+
+    template<int BucketSize>
+    friend class HashTable;
 };
 
 template<typename T>
@@ -380,14 +387,14 @@ int HashTable<BucketSize>::Get(const char *key) {
         hashValue = _mm_crc32_u8(hashValue, key[i]);
 
     unsigned int bucketNum = hashValue % capacity;
-    
+
     List<KeyValuePair> &bucket = table[bucketNum];
 
-    size_t cur = bucket.Head();
-    size_t *nexts = bucket.GetNextsArray();
-    KeyValuePair *elems = bucket.GetValuesArray();
+    size_t cur = bucket.head;
+    size_t *nexts = bucket.nexts;
+    KeyValuePair *elems = bucket.values;
 
-    for (int i = 0; i < bucket.Size(); i++) {
+    for (int i = 0; i < bucket.size; i++) {
         if (!strcmp(elems[cur].key, key))
             return elems[cur].value;
         cur = nexts[cur];
