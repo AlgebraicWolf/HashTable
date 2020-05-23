@@ -1,1 +1,1 @@
-/usr/bin/g++   -march=native -O0 -g   CMakeFiles/HashTable.dir/main.cpp.o  -o HashTable 
+/usr/bin/g++   -march=native -O3 -g   CMakeFiles/HashTable.dir/main.cpp.o  -o HashTable 
