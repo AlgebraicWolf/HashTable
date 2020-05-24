@@ -1,1 +1,3 @@
 /cmake-build-debug/wordlist.txt
+*/*.data
+*/*.data.old
